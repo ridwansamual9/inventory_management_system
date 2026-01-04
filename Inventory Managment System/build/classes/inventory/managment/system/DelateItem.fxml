@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="inventory.managment.system.DelateItemController">
+   <children>
+      <VBox prefHeight="400.0" prefWidth="600.0">
+         <children>
+            <AnchorPane prefHeight="104.0" prefWidth="600.0">
+               <children>
+                  <Label layoutX="57.0" layoutY="45.0" prefHeight="32.0" prefWidth="247.0" text="Delete Inventory Item">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Label layoutX="6.0" layoutY="77.0" text="Search for an item by serial number to request deletion">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="32.0" fitWidth="38.0" layoutX="14.0" layoutY="45.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@imageResourse/delete%20Box.png" />
+                     </image>
+                  </ImageView>
+                  <Button fx:id="homebtn" layoutX="9.0" layoutY="10.0" mnemonicParsing="false" onAction="#homebtnHundlear" prefHeight="32.0" prefWidth="118.0" style="-fx-background-color: #066df5;" text="Home" textFill="#f8f4f4">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="24.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@imageResourse/home.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+            </AnchorPane>
+            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="301.0" prefWidth="600.0" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
+               <content>
+                  <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="323.0" prefWidth="585.0">
+                     <children>
+                        <AnchorPane layoutX="17.0" layoutY="81.0" prefHeight="101.0" prefWidth="558.0" style="-fx-background-color: #78e9eb; -fx-background-radius: 20;" AnchorPane.leftAnchor="17.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="81.0">
+                           <children>
+                              <Label layoutX="69.0" layoutY="14.0" prefHeight="26.0" prefWidth="220.0" text="Search By Serial Number">
+                                 <font>
+                                    <Font name="System Bold" size="17.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="shearchtextField" layoutX="69.0" layoutY="42.0" prefHeight="40.0" prefWidth="368.0" promptText="Search By Serial Number " style="-fx-background-color: white; -fx-background-radius: 10;" />
+                              <ImageView fitHeight="46.0" fitWidth="47.0" layoutX="14.0" layoutY="39.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@imageResourse/inspection.png" />
+                                 </image>
+                              </ImageView>
+                              <Button fx:id="searchbtn" layoutX="445.0" layoutY="44.0" mnemonicParsing="false" onAction="#searchbtnHundlear" prefHeight="32.0" prefWidth="85.0" style="-fx-background-color: #066df5;" text="Search" textFill="#f5f2f2">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </AnchorPane>
+                        <ListView fx:id="inventoryList" layoutX="5.0" layoutY="193.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="80.0" prefWidth="482.0" style="-fx-background-radius: 15; -fx-background-color: white;" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="98.0" AnchorPane.topAnchor="193.0" />
+                        <AnchorPane layoutX="17.0" layoutY="8.0" prefHeight="57.0" prefWidth="561.0" style="-fx-background-radius: 20; -fx-background-color: #78e9eb;">
+                           <children>
+                              <Label layoutX="14.0" layoutY="2.0" prefHeight="25.0" prefWidth="291.0" text="Deletion requires manager approval" textFill="#4657da">
+                                 <font>
+                                    <Font name="System Bold" size="16.0" />
+                                 </font>
+                              </Label>
+                              <Label layoutX="14.0" layoutY="27.0" text="Your delete request will be reviewed by a manager before the item is removed from inventory.">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </AnchorPane>
+                        <Button fx:id="delatebtn" layoutX="493.0" layoutY="217.0" mnemonicParsing="false" onAction="#deletebtnHundlear" prefHeight="32.0" prefWidth="85.0" style="-fx-background-color: #066df5;" text="Delete" textFill="#f5f2f2">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </ScrollPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
