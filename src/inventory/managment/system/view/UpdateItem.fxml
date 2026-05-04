@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="599.0" prefWidth="600.0" stylesheets="@../style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="inventory.managment.system.controller.UpdateItemController">
+   <children>
+      <VBox prefHeight="599.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <AnchorPane prefHeight="104.0" prefWidth="600.0">
+               <children>
+                  <Label layoutX="14.0" layoutY="45.0" prefHeight="32.0" text="Update Inventory Item">
+                     <font><Font name="System Bold" size="22.0" /></font>
+                  </Label>
+                  <Label layoutX="14.0" layoutY="77.0" text="Make changes to the inventory item details" textFill="#5f6368">
+                     <font><Font name="System Bold" size="12.0" /></font>
+                  </Label>
+                  <Button fx:id="homebtn" layoutX="9.0" layoutY="10.0" mnemonicParsing="false" onAction="#homebtnHundlear" styleClass="button-secondary" text="Home">
+                     <font><Font name="System Bold" size="14.0" /></font>
+                     <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                           <image><Image url="@../imageResourse/home.png" /></image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+            </AnchorPane>
+            <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="374.0" prefWidth="600.0" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
+               <content>
+                  <AnchorPane style="-fx-background-color: #f8f9fa;">
+                     <children>
+                        <AnchorPane layoutX="10.0" layoutY="10.0" prefHeight="70.0" style="-fx-background-color: #e8f0fe; -fx-background-radius: 15;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="15.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <TextField fx:id="shearchtextField" prefHeight="40.0" prefWidth="350.0" promptText="Enter Serial Number" />
+                                    <Button fx:id="searchbtn" mnemonicParsing="false" onAction="#searchbtnHundlear" prefHeight="40.0" prefWidth="100.0" styleClass="button-primary" text="Search" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </AnchorPane>
+                        
+                        <Label fx:id="messageLabel" layoutX="15.0" layoutY="90.0" text="Changes require manager approval" textFill="#1a73e8">
+                           <font><Font name="System Bold" size="14.0" /></font>
+                        </Label>
+                        
+                        <TabPane layoutY="120.0" prefHeight="400.0" prefWidth="585.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="120.0">
+                           <tabs>
+                              <Tab fx:id="laptopTab" text="Laptop">
+                                 <content>
+                                    <AnchorPane prefHeight="350.0" prefWidth="585.0">
+                                       <children>
+                                          <AnchorPane layoutX="10.0" layoutY="10.0" prefHeight="263.0" prefWidth="560.0" styleClass="card" style="-fx-background-color: #E7F4FE;" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                                             <children>
+                                                <Label layoutX="20.0" layoutY="14.0" text="Serial number">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="laptopSNtextfield" layoutX="20.0" layoutY="36.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="14.0" text="Brand">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <ComboBox fx:id="laptopBranComo" layoutX="190.0" layoutY="36.0" prefWidth="150.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="68.0" text="Generation">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="laptopGtextField" layoutX="20.0" layoutY="91.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="68.0" text="Model">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="laptopModeltextField" layoutX="190.0" layoutY="91.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="130.0" text="Condition">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <ComboBox fx:id="laptopconditionCombo" layoutX="20.0" layoutY="152.0" prefWidth="150.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="200.0" text="Charger?">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <RadioButton fx:id="laptopHCYesT" layoutX="80.0" layoutY="200.0" mnemonicParsing="false" text="Yes" />
+                                                <RadioButton fx:id="laptopHCNoT" layoutX="130.0" layoutY="200.0" mnemonicParsing="false" text="No" />
+                                                
+                                                <Label layoutX="180.0" layoutY="200.0" text="Mouse?">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <RadioButton fx:id="laptopHMYesT" layoutX="240.0" layoutY="200.0" mnemonicParsing="false" text="Yes" />
+                                                <RadioButton fx:id="laptopHMNoT" layoutX="290.0" layoutY="200.0" mnemonicParsing="false" text="No" />
+                                                
+                                                <ImageView fitHeight="120.0" fitWidth="150.0" layoutX="360.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
+                                                   <image><Image url="@../imageResourse/Laptop1.png" /></image>
+                                                </ImageView>
+                                                
+                                                <Button fx:id="laptopSaveAddbtn" layoutX="460.0" layoutY="210.0" mnemonicParsing="false" onAction="#laptopSaveAddbtnHundlear" styleClass="button-primary" text="Save" />
+                                                <Button fx:id="laptopcancelAddbtn" layoutX="380.0" layoutY="210.0" mnemonicParsing="false" onAction="#laptopcancelAddbtnHundlear" styleClass="button-secondary" text="Cancel" />
+                                             </children>
+                                          </AnchorPane>
+                                       </children>
+                                    </AnchorPane>
+                                 </content>
+                              </Tab>
+                              <Tab fx:id="desktopTab" text="Desktop">
+                                 <content>
+                                    <AnchorPane prefHeight="194.0" prefWidth="600.0">
+                                       <children>
+                                          <AnchorPane layoutX="10.0" layoutY="10.0" prefHeight="271.0" prefWidth="566.0" styleClass="card" style="-fx-background-color: #E7F4FE;">
+                                             <children>
+                                                <Label layoutX="20.0" layoutY="14.0" text="Tower SN">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="dTowerSNtextField" layoutX="20.0" layoutY="36.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="14.0" text="Monitor Model">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="dMonitorTextField" layoutX="190.0" layoutY="36.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="68.0" text="Generation">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="dTowerGNtextField" layoutX="20.0" layoutY="91.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="68.0" text="Tower Model">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="dTowerModeltextField" layoutX="190.0" layoutY="91.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="128.0" text="Condition">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <ComboBox fx:id="dConditionCombo" layoutX="20.0" layoutY="152.0" prefWidth="150.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="128.0" text="Keyboard Model">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="dKeyboeardtextField" layoutX="190.0" layoutY="152.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="190.0" text="Mouse?">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <RadioButton fx:id="dHaveMToggleYesbtn" layoutX="80.0" layoutY="190.0" mnemonicParsing="false" text="Yes" />
+                                                <RadioButton fx:id="dHaveMToggleNobtn" layoutX="130.0" layoutY="190.0" mnemonicParsing="false" text="No" />
+                                                
+                                                <ImageView fitHeight="120.0" fitWidth="150.0" layoutX="371.0" layoutY="30.0" pickOnBounds="true" preserveRatio="true">
+                                                   <image><Image url="@../imageResourse/desktop.png" /></image>
+                                                </ImageView>
+                                                
+                                                <Button fx:id="dektopSaveAddbtn" layoutX="460.0" layoutY="210.0" mnemonicParsing="false" onAction="#dektopSaveAddbtnHundlear" styleClass="button-primary" text="Save" />
+                                                <Button fx:id="dexktopCancelAddbtn" layoutX="380.0" layoutY="210.0" mnemonicParsing="false" onAction="#dexktopCancelAddbtnHundlear" styleClass="button-secondary" text="Cancel" />
+                                             </children>
+                                          </AnchorPane>
+                                       </children>
+                                    </AnchorPane>
+                                 </content>
+                              </Tab>
+                              <Tab fx:id="accessoryTab" text="Accessory">
+                                 <content>
+                                    <AnchorPane prefHeight="180.0" prefWidth="200.0">
+                                       <children>
+                                          <AnchorPane layoutX="10.0" layoutY="10.0" prefHeight="261.0" prefWidth="566.0" styleClass="card" style="-fx-background-color: #E7F4FE;">
+                                             <children>
+                                                <Label layoutX="20.0" layoutY="14.0" text="Accessory Type">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <ComboBox fx:id="accessoryTaypCombo" layoutX="20.0" layoutY="36.0" prefWidth="150.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="14.0" text="Serial Number">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="accessorySNtextField" layoutX="190.0" layoutY="36.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="93.0" text="Brand">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="accessoryBrandtexfield" layoutX="20.0" layoutY="115.0" />
+                                                
+                                                <Label layoutX="190.0" layoutY="93.0" text="Model">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <TextField fx:id="accessoryModeltextField" layoutX="190.0" layoutY="115.0" />
+                                                
+                                                <Label layoutX="20.0" layoutY="171.0" text="Condition">
+                                                   <font><Font name="System Bold" size="14.0" /></font>
+                                                </Label>
+                                                <ComboBox fx:id="accessoryConCombo" layoutX="20.0" layoutY="192.0" prefWidth="150.0" />
+                                                
+                                                <ImageView fitHeight="120.0" fitWidth="150.0" layoutX="360.0" layoutY="40.0" pickOnBounds="true" preserveRatio="true">
+                                                   <image><Image url="@../imageResourse/Accessory.png" /></image>
+                                                </ImageView>
+                                                
+                                                <Button fx:id="accessorySaveAddbtn" layoutX="460.0" layoutY="210.0" mnemonicParsing="false" onAction="#accessorySaveAddbtnHundlear" styleClass="button-primary" text="Save" />
+                                                <Button fx:id="accessorycancelAddbtn" layoutX="380.0" layoutY="210.0" mnemonicParsing="false" onAction="#accessorycancelAddbtnHundlear" styleClass="button-secondary" text="Cancel" />
+                                             </children>
+                                          </AnchorPane>
+                                       </children>
+                                    </AnchorPane>
+                                 </content>
+                              </Tab>
+                           </tabs>
+                        </TabPane>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </ScrollPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

@@ -1,0 +1,966 @@
+================================================================================
+                    INVENTORY MANAGEMENT SYSTEM
+                        CODE DOCUMENTATION
+================================================================================
+
+This document explains the entire codebase structure, methods, and how all 
+components work together.
+
+================================================================================
+1. SYSTEM OVERVIEW
+================================================================================
+
+The Inventory Management System is a JavaFX desktop application for managing
+inventory items (Laptops, Desktops, Accessories) with a role-based approval
+workflow. Data Entry users can request additions/updates/deletions, and 
+Managers approve or reject these requests.
+
+TECHNOLOGY STACK:
+- JavaFX for UI
+- MySQL Database (ims_db)
+- JDBC for database connectivity
+- FXML for UI layout
+
+================================================================================
+2. MAIN ENTRY POINT
+================================================================================
+
+FILE: MainClass.java
+PURPOSE: Application entry point that launches the JavaFX application
+
+METHODS:
+- main(String[] args): Launches the JavaFX application
+- start(Stage stage): Loads and displays the LoginPage.fxml as the initial scene
+
+HOW IT WORKS:
+1. Application starts
+2. Loads LoginPage.fxml
+3. Creates Scene and displays it on the Stage
+4. User authentication begins
+
+================================================================================
+3. DATABASE CONNECTION LAYER
+================================================================================
+
+FILE: Databaseconnection.java
+PURPOSE: Centralized database operations - all database interactions go through this class
+
+CONNECTION DETAILS:
+- URL: jdbc:mysql://localhost:3306/ims_db?serverTimezone=UTC
+- USER: root
+- PASSWORD: 0905225438
+
+KEY METHODS:
+
+getConnection()
+- Establishes connection to MySQL database
+- Loads MySQL JDBC driver
+- Returns Connection object for database operations
+
+getAllItems()
+- Retrieves all items from Laptop, Desktop, and Accessory tables
+- Combines results into InventoryDisplayItem objects
+- Used by InventoryListController to display all items
+- Returns List<InventoryDisplayItem>
+
+insertRequest(String requestType, String itemType, String itemId, int userId)
+- Creates a new request in the Request table
+- Used for UPDATE and DELETE requests
+- Sets status to 'PENDING' automatically
+- requestType: "UPDATES" or "DELETE"
+- itemType: "LAPTOP", "DESKTOP", or "ACCESSORY"
+- itemId: Serial number of the item
+
+insertNewItemRequest(String itemType, Object item, int userId)
+- Creates ADD_ITEM request for new items
+- Inserts into Request table with status 'PENDING'
+- Inserts item data into appropriate temp table (tempLaptop, tempDesktop, tempAccessory)
+- For new items, item_id is set to NULL in temp tables (since item doesn't exist yet)
+- Returns the generated request_id
+
+insertUpdateRequest(String itemType, Object item, int userId)
+- Creates UPDATES request for existing items
+- Finds existing item by serial number
+- Inserts updated data into temp table with existing item_id
+- Used when updating existing items
+
+approveRequest(int requestId, int managerUserId)
+- Manager approves a pending request
+- Uses transactions to ensure data consistency
+- For ADD_ITEM: Inserts new item into actual table (Laptop/Desktop/Accessory)
+- For UPDATES: Updates existing item from temp table data
+- For DELETE: Deletes item from actual table
+- Updates Request status to 'APPROVED'
+- Creates audit log entry
+- Cleans up temp table entries after approval
+- Uses rollback if any error occurs
+
+rejectRequest(int requestId)
+- Manager rejects a pending request
+- Deletes entries from temp tables (tempLaptop/tempDesktop/tempAccessory)
+- Updates Request status to 'REJECTED'
+- Creates audit log entry for rejection
+- Uses transactions for safety
+
+getRequestDetails(int requestId)
+- Retrieves complete request information
+- Returns RequestDetail object with all request data
+- Includes temp table data if available
+- Used by ApprovalController to display request details
+
+getPendingRequests()
+- Returns list of all pending requests
+- Used by ApprovalController to show requests needing approval
+
+getPendingRequestCount()
+- Returns count of pending requests
+- Used by dashboards to display notification numbers
+
+getLowStockCount()
+- Counts laptop and desktop items
+- Returns count if less than 5, otherwise 0
+- Used for low stock alerts on dashboards
+
+getActiveUsersCount()
+- Counts users where is_active = 1
+- Used to display active user count on Manager Dashboard
+
+getUserActionAlertsCount()
+- Counts pending requests of type ADD_ITEM, UPDATES, or DELETE
+- Used for alert notifications
+
+getRecentModifications()
+- Returns list of recent pending modification requests
+- Includes request type, item type, username, and date
+- Used by AlertesController to show recent activity
+
+getAuditLogs(String actionTypeFilter)
+- Retrieves audit trail entries
+- Can filter by action type (ADD_ITEM, UPDATE, DELETE, REJECT)
+- Joins with Users table to get usernames
+- Used by AuditLogController
+
+getAllUsers()
+- Returns list of all users with their roles and active status
+- Used by UsermanagmentsController
+
+addUser(String username, String password, String role, boolean isActive)
+- Creates new user account
+- Returns generated user ID
+- Used by UsermanagmentsController
+
+updateUser(int userId, String username, String password, boolean isActive)
+- Updates existing user information
+- Password can be null to keep existing password
+- Used by UsermanagmentsController
+
+setUserActive(int userId, boolean isActive)
+- Activates or deactivates a user account
+- Used for user management
+
+getFilteredItems(String itemType, String brand, String condition)
+- Retrieves items filtered by criteria
+- Used by ReportController to generate reports
+- Returns List<InventoryDisplayItem>
+
+getAllBrands(String itemType)
+- Returns list of unique brands for given item type
+- Used by ReportController to populate brand combo box
+
+searchLaptopBySerial(String serialNumber)
+- Searches for laptop by serial number
+- Returns Laptop object if found, null otherwise
+- Used by UpdateItemController and DelateItemController
+
+searchDesktopBySerial(String serialNumber)
+- Searches for desktop by tower serial number
+- Returns Desktop object if found
+
+searchAccessoryBySerial(String serialNumber)
+- Searches for accessory by serial number
+- Returns Accessory object if found
+
+cleanupTempTableEntries(Connection con, int requestId, String itemType)
+- Helper method to delete temp table entries
+- Accepts Connection to work within existing transactions
+- Called by approveRequest and rejectRequest
+
+================================================================================
+4. DATA MODEL CLASSES
+================================================================================
+
+FILE: INVItem.java
+PURPOSE: Base class for all inventory items
+
+PROPERTIES:
+- itemId: Unique identifier
+- condition: Enum (NEW, GOOD, FAIR, POOR)
+- createdDate: When item was added
+
+FILE: Laptop.java extends INVItem
+PURPOSE: Represents a laptop item
+
+PROPERTIES:
+- serialNumber: Unique serial number
+- brand: Manufacturer (Dell, HP, etc.)
+- model: Model name
+- generation: Generation/version
+- itemCondition: Condition enum
+- haveCharger: Boolean
+- haveMouse: Boolean
+
+FILE: Desktop.java extends INVItem
+PURPOSE: Represents a desktop computer
+
+PROPERTIES:
+- towerSerialNumber: Serial number of tower
+- towerGeneration: Generation
+- towerModel: Model name
+- desktopCondition: Condition enum
+- keyboardModel: Keyboard model
+- haveMouse: Boolean
+
+FILE: Accessory.java extends INVItem
+PURPOSE: Represents an accessory item
+
+PROPERTIES:
+- accessoryType: Enum (MONITOR, TOWER, KEYBOARD, MOUSE)
+- brand: Manufacturer
+- serialNumber: Serial number
+- model: Model name
+- itemCondition: Condition enum
+
+FILE: InventoryDisplayItem.java
+PURPOSE: Data Transfer Object for displaying items in tables
+
+PROPERTIES:
+- itemType: "Laptop", "Desktop", or "Accessory"
+- serialNumber: Serial number
+- brand: Brand name
+- model: Model name
+- condition: Condition string
+- addDate: Creation date
+- editBtn: Button for editing (data entry users)
+- deleteBtn: Button for deleting (data entry users)
+
+HOW IT WORKS:
+- Used by InventoryListController to display items in TableView
+- Combines data from different item types into unified format
+- Allows role-based UI (edit/delete buttons for data entry users)
+
+================================================================================
+5. CONTROLLER CLASSES
+================================================================================
+
+5.1 LOGIN PAGE CONTROLLER
+FILE: LoginPageController.java
+PURPOSE: Handles user authentication
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Hides inactive message label on startup
+- Initializes UI components
+
+loginhundler(ActionEvent event)
+- Validates username and password
+- Checks if user exists in database
+- Verifies password matches
+- Checks if user is active
+- If valid and active:
+  - Stores user ID in static variable usrid
+  - Redirects to appropriate dashboard:
+    - MANAGER role -> ManagerDashboard.fxml
+    - DATA_ENTRY role -> DataEntryDashboard.fxml
+- Shows error messages for invalid credentials
+- Shows inactive message if user is deactivated
+
+HOW IT WORKS:
+1. User enters username and password
+2. System checks if username exists
+3. If exists, validates password
+4. Checks is_active status
+5. Redirects to appropriate dashboard based on role
+
+5.2 DATA ENTRY DASHBOARD CONTROLLER
+FILE: DataEntryDashboardController.java
+PURPOSE: Main dashboard for data entry users
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Populates search combo box with search types (SERIAL_NUMBER, MODEL, BRAND)
+- Loads recent requests from database
+- Displays recent requests in anchor panes
+- Loads recent items from database
+- Displays recent items in anchor panes
+- Updates statistics:
+  - Total pending requests
+  - Total approved requests
+  - Total rejected requests
+  - Total items
+- Checks for low stock alerts
+
+addItemHundler(ActionEvent event)
+- Navigates to AddItem.fxml
+- Allows user to add new items
+
+updatehundlear(ActionEvent event)
+- Navigates to UpdateItem.fxml
+- Allows user to update existing items
+
+delateHundlear(ActionEvent event)
+- Navigates to DelateItem.fxml
+- Allows user to delete items
+
+inventoryBtnHandler(ActionEvent event)
+- Navigates to InventoryList.fxml
+- Sets user role to "data_entry"
+- Allows user to view and manage inventory
+
+searchHuldlear(ActionEvent event)
+- Navigates to InventoryList.fxml with search parameters
+- Passes search text and search type to InventoryListController
+- Sets user role to "data_entry"
+
+myRequstHundlear(ActionEvent event)
+- Navigates to MyRequsts.fxml
+- Shows user's own requests
+
+logoutHandler(ActionEvent event)
+- Returns to LoginPage.fxml
+- Logs user out
+
+5.3 MANAGER DASHBOARD CONTROLLER
+FILE: ManagerDashboardController.java
+PURPOSE: Main dashboard for managers
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Updates all notification counts
+- Displays total items
+- Displays pending approval count (red if > 0)
+- Displays low stock count (red if > 0)
+- Displays active users count
+- Updates alert button indicator (red circle if alerts exist)
+
+updateNotifications()
+- Fetches pending request count
+- Updates label with red styling if count > 0
+- Fetches low stock count
+- Updates label with red styling if count > 0
+
+updateAlertButtonIndicator()
+- Checks for low stock alerts
+- Checks for user action alerts (pending requests)
+- Adds red circle indicator to alert button if alerts exist
+- Adds "●" symbol to button text if alerts exist
+
+approvalHandler(ActionEvent event)
+- Navigates to Approval.fxml
+- Allows manager to approve/reject requests
+
+alertHandler(ActionEvent event)
+- Navigates to Alertes.fxml
+- Shows all system alerts
+
+reportHandler(ActionEvent event)
+- Navigates to Report.fxml
+- Allows manager to generate reports
+
+auditLogHandler(ActionEvent event)
+- Navigates to AuditLog.fxml
+- Shows audit trail
+
+manageUserbtnHundlear(ActionEvent event)
+- Navigates to UserManagments.fxml
+- Allows manager to manage users
+
+inventoryBtnHandler(ActionEvent event)
+- Navigates to InventoryList.fxml
+- Sets user role to "manager" (read-only view)
+
+logoutHandler(ActionEvent event)
+- Returns to LoginPage.fxml
+
+5.4 ADD ITEM CONTROLLER
+FILE: AddItemController.java
+PURPOSE: Allows data entry users to add new items
+
+HOW IT WORKS:
+- Has tabs for Laptop, Desktop, and Accessory
+- User fills in item details
+- When Save button clicked:
+  - Creates Laptop/Desktop/Accessory object
+  - Calls Databaseconnection.insertNewItemRequest()
+  - This creates a PENDING request
+  - Item data stored in temp table
+  - Manager must approve before item is added to actual table
+
+KEY METHODS:
+- laptopSaveAddbtnHundlear(): Saves laptop item request
+- desktopSaveAddbtnHundlear(): Saves desktop item request
+- accessorySaveAddbtnHundlear(): Saves accessory item request
+
+5.5 UPDATE ITEM CONTROLLER
+FILE: UpdateItemController.java
+PURPOSE: Allows data entry users to update existing items
+
+HOW IT WORKS:
+1. User searches for item by serial number
+2. System searches in Laptop, Desktop, and Accessory tables
+3. If found, displays item details in form
+4. User modifies fields
+5. When Save clicked:
+   - Creates updated item object
+   - Calls Databaseconnection.insertUpdateRequest()
+   - Creates PENDING request
+   - Updated data stored in temp table
+   - Manager must approve before changes are applied
+
+KEY METHODS:
+- searchbtnHundlear(): Searches for item by serial number
+- laptopSaveAddbtnHundlear(): Saves laptop update request
+- desktopSaveAddbtnHundlear(): Saves desktop update request
+- accessorySaveAddbtnHundlear(): Saves accessory update request
+
+5.6 DELETE ITEM CONTROLLER
+FILE: DelateItemController.java
+PURPOSE: Allows data entry users to delete items
+
+HOW IT WORKS:
+1. User enters serial number
+2. System searches in parallel threads (Laptop, Desktop, Accessory)
+3. If found, displays item information
+4. User clicks Delete button
+5. Calls Databaseconnection.insertRequest("DELETE", itemType, itemId, userId)
+6. Creates PENDING DELETE request
+7. Manager must approve before item is deleted
+
+KEY METHODS:
+- searchbtnHundlear(): Searches for item using multiple threads
+- deletebtnHundlear(): Submits delete request
+
+5.7 INVENTORY LIST CONTROLLER
+FILE: InventoryListController.java
+PURPOSE: Displays inventory list with filtering and search
+
+KEY PROPERTIES:
+- userRole: "data_entry" or "manager"
+- allItems: ObservableList containing all items
+- filteredItems: FilteredList for search/filter functionality
+
+METHODS:
+
+setUserRole(String userRole)
+- Sets the user role
+- Loads items if not already loaded
+- Called by dashboard controllers after FXML loads
+
+loadItems()
+- Determines which loading method to call based on role
+- Calls loadForDataEntry() or loadForManager()
+- Sets default predicate to show all items
+
+initialize(URL url, ResourceBundle rb)
+- Sets up combo boxes with options
+- Configures table column bindings
+- Hides columns initially (shown based on role)
+- Sets up search type listener
+- Loads items if role is already set
+
+loadForDataEntry()
+- Loads all items from database
+- Adds Edit and Delete buttons to each item
+- Shows actions column
+- Hides add date column
+- Sets up action button handlers
+
+loadForManager()
+- Loads all items from database
+- Shows add date column
+- Hides actions column (read-only view)
+
+updateSearchUI()
+- Updates UI based on selected search type
+- If "All" selected: Disables all search fields
+- If "SERIAL_NUMBER": Enables only text field
+- If "MODEL" or "BRAND": Enables text field and filter combo boxes
+
+searchbtnHundlear(ActionEvent event)
+- Applies filters when search button clicked
+- If "All" selected: Shows all items
+- Otherwise: Applies search text and filter criteria
+- Uses FilteredList predicate to filter items
+
+handleEdit(InventoryDisplayItem item)
+- Called when Edit button clicked (data entry users only)
+- Creates UPDATE request for the item
+- Calls Databaseconnection.insertRequest("UPDATES", ...)
+
+handleDelete(InventoryDisplayItem item)
+- Called when Delete button clicked (data entry users only)
+- Creates DELETE request for the item
+- Calls Databaseconnection.insertRequest("DELETE", ...)
+
+homebtnHundlear(ActionEvent event)
+- Navigates back to appropriate dashboard based on role
+
+HOW IT WORKS:
+1. Page loads, items are fetched from database
+2. All items displayed by default
+3. User can select search type and enter search criteria
+4. Click Search button to apply filters
+5. If "All" selected, view resets to show all items
+6. Data entry users see Edit/Delete buttons
+7. Managers see read-only view with creation dates
+
+5.8 MY REQUESTS CONTROLLER
+FILE: MyRequestsController.java
+PURPOSE: Shows user's own requests and allows cancellation
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Sets up table column bindings
+- Adds Cancel button to action column
+- Loads user's requests
+
+loadRequests()
+- Queries Request table
+- Displays all requests in table
+- Shows: ID, Type, Item Name, Item Type, Status, Date
+
+addButtonToTable()
+- Creates Cancel button for each row
+- Button disabled for APPROVED/REJECTED requests
+- Button enabled only for PENDING requests
+- Button text changes to "N/A" for non-pending requests
+
+cancelRequest(int id)
+- Updates request status to 'CANCELLED'
+- Refreshes table to show updated status
+
+HOW IT WORKS:
+1. Loads all requests from database
+2. Displays in table
+3. PENDING requests show Cancel button
+4. APPROVED/REJECTED requests show "N/A" (disabled)
+5. User can cancel only pending requests
+
+5.9 APPROVAL CONTROLLER
+FILE: ApprovalController.java
+PURPOSE: Allows managers to approve or reject requests
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Loads pending requests
+- Sets up selection listener
+- When request selected, loads its details
+
+loadPendingRequests()
+- Fetches all pending requests
+- Displays in list view with format:
+  "Request #ID: REQUEST_TYPE - ITEM_TYPE (DATE)"
+
+loadRequestDetails(Databaseconnection.RequestDetail request)
+- Loads complete details of selected request
+- Shows request information
+- Shows temp table data (updated values)
+- Displays in detail list view
+
+approveRequest()
+- Called when Approve button clicked
+- Calls Databaseconnection.approveRequest()
+- Shows success message
+- Reloads pending requests list
+
+rejectRequest()
+- Called when Reject button clicked
+- Calls Databaseconnection.rejectRequest()
+- Shows success message
+- Reloads pending requests list
+
+HOW IT WORKS:
+1. Manager sees list of pending requests
+2. Selects a request to see details
+3. Views current item data and proposed changes
+4. Clicks Approve or Reject
+5. System processes request:
+   - Approve: Applies changes to actual tables
+   - Reject: Deletes temp data, marks request rejected
+6. Request removed from pending list
+
+5.10 ALERTES CONTROLLER
+FILE: AlertesController.java
+PURPOSE: Displays system alerts and notifications
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Loads all alerts
+
+loadAlerts()
+- Gets low stock count
+- If > 0, adds low stock alert
+- Gets user action alerts count (pending requests)
+- If > 0, adds modification alert
+- Gets recent modifications
+- Formats and displays all alerts with icons
+- Shows "No alerts" message if none exist
+
+HOW IT WORKS:
+- Aggregates alerts from multiple sources
+- Displays in list view with icons
+- Updates when page is loaded
+
+5.11 AUDIT LOG CONTROLLER
+FILE: AuditLogController.java
+PURPOSE: Displays audit trail of all system actions
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Sets up action type filter combo box
+- Loads audit logs with "All Actions" filter
+- Sets up filter listener
+
+loadAuditLogs(String filter)
+- Calls Databaseconnection.getAuditLogs(filter)
+- Displays in list view
+- Format: "ACTION_TYPE | ITEM_TYPE | Request #ID | by USERNAME | DATE"
+
+HOW IT WORKS:
+- Shows all actions (ADD, UPDATE, DELETE, REJECT)
+- Can filter by action type
+- Shows who performed action and when
+
+5.12 USER MANAGEMENT CONTROLLER
+FILE: UsermanagmentsController.java
+PURPOSE: Allows managers to manage user accounts
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Loads all users
+
+loadUsers()
+- Fetches all users from database
+- Displays in list view with format:
+  "ID: X | USERNAME | ROLE | STATUS"
+- Sets up double-click listener for editing
+
+addUsersbtnHundlear(ActionEvent event)
+- Shows dialog to add new user
+- Validates username and password
+- Checks if username already exists
+- Creates new user account
+
+editUser(Databaseconnection.UserInfo user)
+- Shows dialog to edit user
+- Allows changing username and password
+- Allows activating/deactivating user (managers only)
+- Validates username uniqueness
+
+HOW IT WORKS:
+1. Manager sees list of all users
+2. Can add new users with dialog
+3. Double-click user to edit
+4. Can activate/deactivate users
+5. Changes saved to database
+
+5.13 REPORT CONTROLLER
+FILE: ReportController.java
+PURPOSE: Generates and exports inventory reports
+
+METHODS:
+
+initialize(URL url, ResourceBundle rb)
+- Sets up item type combo box
+- Sets up condition combo box
+- Sets up brand combo box
+- Updates brand list when item type changes
+
+updateBrandCombo()
+- Gets brands for selected item type
+- Updates brand combo box options
+
+generateReportbtnHundlear(ActionEvent event)
+- Gets selected filters (item type, brand, condition)
+- Calls Databaseconnection.getFilteredItems()
+- Formats results for display
+- Shows in list view
+
+exportReportbtnHundlear(ActionEvent event)
+- Opens file chooser
+- Exports report as TXT or CSV
+- Formats data appropriately
+- Saves to selected file
+
+HOW IT WORKS:
+1. Manager selects filters (item type, brand, condition)
+2. Clicks Generate Report
+3. System queries database with filters
+4. Displays results in list view
+5. Can export to TXT or CSV file
+
+================================================================================
+6. REQUEST WORKFLOW
+================================================================================
+
+ADD ITEM WORKFLOW:
+1. Data Entry user fills Add Item form
+2. Clicks Save button
+3. AddItemController creates item object
+4. Calls Databaseconnection.insertNewItemRequest()
+5. System creates Request with status 'PENDING'
+6. Item data inserted into temp table (tempLaptop/tempDesktop/tempAccessory)
+7. item_id set to NULL (item doesn't exist yet)
+8. Manager views request in Approval page
+9. Manager clicks Approve:
+   - System inserts item into actual table (Laptop/Desktop/Accessory)
+   - Updates Request status to 'APPROVED'
+   - Creates audit log entry
+   - Deletes temp table entry
+10. Manager clicks Reject:
+    - System deletes temp table entry
+    - Updates Request status to 'REJECTED'
+    - Creates audit log entry
+
+UPDATE ITEM WORKFLOW:
+1. Data Entry user searches for item
+2. Updates item details in form
+3. Clicks Save button
+4. UpdateItemController creates updated item object
+5. Calls Databaseconnection.insertUpdateRequest()
+6. System finds existing item by serial number
+7. Creates Request with status 'PENDING'
+8. Updated data inserted into temp table with existing item_id
+9. Manager views request in Approval page
+10. Manager clicks Approve:
+    - System updates actual item from temp table data
+    - Updates Request status to 'APPROVED'
+    - Creates audit log entry
+    - Deletes temp table entry
+11. Manager clicks Reject:
+    - System deletes temp table entry
+    - Updates Request status to 'REJECTED'
+    - Creates audit log entry
+
+DELETE ITEM WORKFLOW:
+1. Data Entry user searches for item
+2. Clicks Delete button
+3. DelateItemController calls Databaseconnection.insertRequest("DELETE", ...)
+4. System creates Request with status 'PENDING'
+5. Manager views request in Approval page
+6. Manager clicks Approve:
+   - System deletes item from actual table
+   - Updates Request status to 'APPROVED'
+   - Creates audit log entry
+7. Manager clicks Reject:
+   - Updates Request status to 'REJECTED'
+   - Creates audit log entry
+
+================================================================================
+7. DATABASE SCHEMA
+================================================================================
+
+TABLES:
+
+Users
+- id (PK)
+- username
+- password
+- role (DATA_ENTRY or MANAGER)
+- is_active (boolean)
+
+Request
+- request_id (PK)
+- user_id (FK to Users)
+- item_id (serial number, can be NULL for new items)
+- request_type (ADD_ITEM, UPDATES, DELETE)
+- item_type (LAPTOP, DESKTOP, ACCESSORY)
+- status (PENDING, APPROVED, REJECTED, CANCELLED)
+- request_date
+
+Laptop
+- id (PK)
+- serial_number (unique)
+- brand
+- generation
+- model
+- condition (NEW, GOOD, FAIR, POOR)
+- have_charger (boolean)
+- have_mouse (boolean)
+- created_in_date
+
+Desktop
+- id (PK)
+- tower_serial_number (unique)
+- tower_generation
+- tower_model
+- desktop_condition
+- keyboard_model
+- have_mouse (boolean)
+- created_in_date
+
+Accessory
+- id (PK)
+- type (MONITOR, TOWER, KEYBOARD, MOUSE)
+- serial_number (unique)
+- brand
+- model
+- condition
+- created_in_date
+
+tempLaptop
+- request_id (FK to Request)
+- item_id (FK to Laptop, can be NULL for new items)
+- serial_number
+- brand
+- generation
+- model
+- condition
+- have_charger
+- have_mouse
+
+tempDesktop
+- request_id (FK to Request)
+- item_id (FK to Desktop, can be NULL for new items)
+- tower_serial_number
+- tower_generation
+- tower_model
+- desktop_condition
+- keyboard_model
+- have_mouse
+
+tempAccessory
+- request_id (FK to Request)
+- item_id (FK to Accessory, can be NULL for new items)
+- type
+- serial_number
+- brand
+- model
+- condition
+
+Audit
+- audit_id (PK)
+- action_type (ADD_ITEM, UPDATE, DELETE, REJECT)
+- performed_by_user_id (FK to Users)
+- request_id (FK to Request)
+- item_type
+- action_date
+
+================================================================================
+8. KEY DESIGN PATTERNS
+================================================================================
+
+1. SINGLETON PATTERN (Databaseconnection)
+- All database operations centralized in one class
+- Static methods for easy access
+- Single connection point to database
+
+2. MVC PATTERN
+- Model: Database tables, Java classes (Laptop, Desktop, Accessory)
+- View: FXML files
+- Controller: Controller classes handle logic
+
+3. TEMPORARY TABLE PATTERN
+- Temp tables store pending changes
+- Prevents direct modification of actual data
+- Allows approval workflow
+- Easy rollback on rejection
+
+4. TRANSACTION PATTERN
+- approveRequest() and rejectRequest() use transactions
+- All operations succeed or all fail (atomicity)
+- Rollback on error ensures data consistency
+
+5. OBSERVER PATTERN
+- JavaFX ObservableList and FilteredList
+- TableView automatically updates when data changes
+- Event-driven UI updates
+
+================================================================================
+9. ROLE-BASED ACCESS CONTROL
+================================================================================
+
+DATA_ENTRY ROLE:
+- Can add new items (creates pending requests)
+- Can update items (creates pending requests)
+- Can delete items (creates pending requests)
+- Can view inventory list with edit/delete buttons
+- Can view own requests
+- Can cancel own pending requests
+- Cannot approve/reject requests
+- Cannot view audit logs
+- Cannot manage users
+
+MANAGER ROLE:
+- Can approve/reject requests
+- Can view all inventory (read-only)
+- Can view audit logs
+- Can generate reports
+- Can manage users
+- Can view alerts
+- Cannot directly add/update/delete items
+- Must approve all changes
+
+================================================================================
+10. ERROR HANDLING
+================================================================================
+
+- SQLException: Caught and logged, user shown error messages
+- NullPointerException: Prevented by null checks
+- Database connection errors: Handled gracefully
+- Transaction rollback: Automatic on errors
+- User input validation: Performed before database operations
+
+================================================================================
+11. UI COMPONENTS
+================================================================================
+
+FXML FILES:
+- Loginpage.fxml: Login form
+- DataEntryDashboard.fxml: Data entry user dashboard
+- ManagerDashboard.fxml: Manager dashboard
+- AddItem.fxml: Add new item form
+- UpdateItem.fxml: Update existing item form
+- DelateItem.fxml: Delete item form
+- InventoryList.fxml: Inventory list with search/filter
+- MyRequsts.fxml: User's requests list
+- Approval.fxml: Manager approval interface
+- Alertes.fxml: Alerts display
+- AuditLog.fxml: Audit trail display
+- Report.fxml: Report generation
+- UserManagments.fxml: User management
+
+================================================================================
+12. COMMON OPERATIONS
+================================================================================
+
+NAVIGATION:
+- All controllers use FXMLLoader to load FXML files
+- Stage and Scene management for page transitions
+- Role-based navigation (different dashboards)
+
+DATA DISPLAY:
+- TableView for tabular data
+- ListView for simple lists
+- ObservableList for dynamic updates
+- FilteredList for search/filter functionality
+
+SEARCH FUNCTIONALITY:
+- Serial number search (exact match)
+- Model search (contains)
+- Brand search (contains)
+- Filter by item type, brand, condition
+- Search only applies when button clicked
+- "All" option resets to show all items
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+

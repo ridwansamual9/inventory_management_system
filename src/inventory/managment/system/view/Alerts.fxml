@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane id="AnchorPane" prefHeight="500.0" prefWidth="700.0" stylesheets="@../style.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/25" fx:controller="inventory.managment.system.controller.AlertsController">
+   <children>
+      <VBox layoutX="20.0" layoutY="20.0" spacing="20.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+         <children>
+            <AnchorPane prefHeight="50.0">
+               <children>
+                  <Button fx:id="backToDashboardbtn" layoutX="0.0" layoutY="10.0" mnemonicParsing="false" onAction="#backToDashboardHandler" styleClass="button-secondary" text="← Back To Dashboard" />
+               </children>
+            </AnchorPane>
+            <AnchorPane prefHeight="400.0" styleClass="card" VBox.vgrow="ALWAYS">
+               <children>
+                  <VBox spacing="15.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+                     <children>
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label text="Alerts &amp; Notifications" textFill="#1a73e8">
+                                 <font>
+                                    <Font name="System Bold" size="24.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Stay updated with system alerts and important notifications" textFill="#5f6368">
+                                 <font>
+                                    <Font name="System" size="14.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </VBox>
+                        <ListView fx:id="stockAlertList" prefHeight="250.0" styleClass="list-view-modern" VBox.vgrow="ALWAYS" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
